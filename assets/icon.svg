@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- LearnAI: a QCM card (three answers, the first chosen and right) and the
+       AI spark. assets/icon.png is drawn from the same shapes. -->
+  <defs>
+    <linearGradient id="tile" x1="100" y1="100" x2="924" y2="924" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ee7cf5"/>
+      <stop offset="0.55" stop-color="#b13fd0"/>
+      <stop offset="1" stop-color="#6f1d92"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#2a0a33" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#tile)" filter="url(#shadow)"/>
+  <rect x="250" y="318" width="524" height="112" rx="56" fill="#ffffff"/>
+  <rect x="250" y="488" width="524" height="112" rx="56" fill="#ffffff" fill-opacity="0.42"/>
+  <rect x="250" y="658" width="524" height="112" rx="56" fill="#ffffff" fill-opacity="0.42"/>
+  <circle cx="322" cy="374" r="32" fill="#9b2db8"/>
+  <path d="M618 376 L656 412 L726 336" fill="none" stroke="#9b2db8" stroke-width="30"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M742 150 Q755.6 198.4 804 212 Q755.6 225.6 742 274 Q728.4 225.6 680 212 Q728.4 198.4 742 150 Z" fill="#ffffff"/>
+  <path d="M830 270 Q836.6 293.4 860 300 Q836.6 306.6 830 330 Q823.4 306.6 800 300 Q823.4 293.4 830 270 Z" fill="#ffffff"/>
+</svg>

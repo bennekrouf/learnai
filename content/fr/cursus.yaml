@@ -1,0 +1,104 @@
+titre: "Ingénierie des systèmes IA"
+langue: fr
+etapes:
+  - id: "00"
+    dossier: 00-fondations
+    titre: "Fondations des LLM"
+    rubriques:
+      - { id: "00-01", titre: "Tokens et contexte", sous_rubriques: ["Ce qu'est un token", "La fenêtre de contexte", "Entrée, sortie et coût"] }
+      - { id: "00-02", titre: "Génération", sous_rubriques: ["Prédire le token suivant", "Température et top-p", "Le déterminisme", "Sorties structurées"] }
+      - { id: "00-03", titre: "Embeddings", sous_rubriques: ["Un texte devient un vecteur", "La similarité cosinus", "Ce qu'un embedding capte, et ce qu'il rate"] }
+      - { id: "00-04", titre: "Appel d'outils", sous_rubriques: ["Décrire un outil", "La boucle appel, résultat, réponse", "Ce qui peut mal tourner"] }
+
+  - id: "01"
+    dossier: 01-contexte
+    titre: "Maîtriser le contexte"
+    projets: [1, 7]
+    rubriques:
+      - { id: "01-01", titre: "Budget de tokens", sous_rubriques: ["Répartir la fenêtre", "Réserver la sortie"] }
+      - { id: "01-02", titre: "Assemblage par priorité", sous_rubriques: ["Que couper d'abord", "Troncature et résumé", "Prévenir le débordement"] }
+      - { id: "01-03", titre: "Mémoire à 3 niveaux", sous_rubriques: ["Mémoire de travail", "Mémoire épisodique", "Mémoire sémantique"] }
+      - { id: "01-04", titre: "Cycle de vie de la mémoire", sous_rubriques: ["Score d'importance", "TTL et éviction", "Persistance entre sessions"] }
+
+  - id: "02"
+    dossier: 02-recherche
+    titre: "Retrouver l'information"
+    projets: [2, 3]
+    rubriques:
+      - { id: "02-01", titre: "Préparer le corpus", sous_rubriques: ["Découpage", "Métadonnées", "Indexation"] }
+      - { id: "02-02", titre: "Recherche", sous_rubriques: ["BM25", "Recherche vectorielle", "Fusion hybride (RRF)"] }
+      - { id: "02-03", titre: "Reranking", sous_rubriques: ["Bi-encoder et cross-encoder", "Latence contre précision"] }
+      - { id: "02-04", titre: "Mesurer la recherche", sous_rubriques: ["recall@k, MRR, nDCG", "Construire un jeu de test"] }
+      - { id: "02-05", titre: "GraphRAG", sous_rubriques: ["Entités et relations", "Parcours multi-sauts", "Résumés de communautés", "Quand ça ne vaut pas le coût"] }
+
+  - id: "03"
+    dossier: 03-fiabilite
+    titre: "Empêcher le RAG d'inventer"
+    projets: [4]
+    rubriques:
+      - { id: "03-01", titre: "Améliorer la question", sous_rubriques: ["Reformulation", "Décomposition", "HyDE"] }
+      - { id: "03-02", titre: "Recherche en plusieurs étapes", sous_rubriques: ["Boucler", "Savoir s'arrêter"] }
+      - { id: "03-03", titre: "Ancrage", sous_rubriques: ["Citer ses sources", "Vérifier le support"] }
+      - { id: "03-04", titre: "Abstention", sous_rubriques: ["Seuils de confiance", "Dire « je ne sais pas »"] }
+      - { id: "03-05", titre: "Détecter les hallucinations", sous_rubriques: ["Cohérence", "Juge"] }
+
+  - id: "04"
+    dossier: 04-outils-mcp
+    titre: "Les outils et le protocole MCP"
+    projets: [6]
+    rubriques:
+      - { id: "04-01", titre: "JSON-RPC", sous_rubriques: ["Requête et réponse", "Notification", "Erreurs"] }
+      - { id: "04-02", titre: "MCP", sous_rubriques: ["Versions : initialize, puis sans état", "tools/list et tools/call", "Ressources et prompts", "stdio et HTTP"] }
+      - { id: "04-03", titre: "Schémas stricts", sous_rubriques: ["JSON Schema", "Valider entrées et sorties"] }
+      - { id: "04-04", titre: "Permissions", sous_rubriques: ["Portée des outils", "Sandbox", "Confirmation humaine"] }
+
+  - id: "05"
+    dossier: 05-agents
+    titre: "Des agents qui tiennent en production"
+    projets: [5, 8]
+    rubriques:
+      - { id: "05-01", titre: "Machine à états", sous_rubriques: ["États et transitions", "La boucle d'agent"] }
+      - { id: "05-02", titre: "Durabilité", sous_rubriques: ["Checkpoint", "Reprise après crash", "Idempotence"] }
+      - { id: "05-03", titre: "Échecs", sous_rubriques: ["Timeouts", "Backoff exponentiel et aléa", "Limiter les tentatives"] }
+      - { id: "05-04", titre: "Humain dans la boucle", sous_rubriques: ["Étapes à valider", "Approuver ou rejeter"] }
+      - { id: "05-05", titre: "Multi-agent", sous_rubriques: ["Topologies", "Superviseur", "État typé", "Conflits", "Quand un seul agent suffit"] }
+
+  - id: "06"
+    dossier: 06-securite
+    titre: "Sécurité des agents"
+    projets: [10]
+    rubriques:
+      - { id: "06-01", titre: "Injection de prompt", sous_rubriques: ["Directe", "Indirecte", "Donnée, jamais instruction"] }
+      - { id: "06-02", titre: "Données personnelles", sous_rubriques: ["Masquage réversible", "Ce qui ne sort jamais"] }
+      - { id: "06-03", titre: "Moindre privilège", sous_rubriques: ["Par agent", "Par outil"] }
+      - { id: "06-04", titre: "Journal d'audit", sous_rubriques: ["Quoi tracer", "Rendre inaltérable"] }
+
+  - id: "07"
+    dossier: 07-evaluation
+    titre: "Évaluer"
+    projets: [9]
+    rubriques:
+      - { id: "07-01", titre: "Ce qu'on évalue", sous_rubriques: ["La réponse", "La trajectoire"] }
+      - { id: "07-02", titre: "Référence", sous_rubriques: ["Golden set", "DAG attendu", "Note par étape"] }
+      - { id: "07-03", titre: "LLM juge", sous_rubriques: ["Grille", "Calibrage", "Biais"] }
+      - { id: "07-04", titre: "En CI", sous_rubriques: ["Régressions", "Bloquer une PR"] }
+
+  - id: "08"
+    dossier: 08-cout
+    titre: "Coût et performance"
+    projets: [11]
+    rubriques:
+      - { id: "08-01", titre: "Cache", sous_rubriques: ["Cache de prompt", "Cache sémantique et ses risques"] }
+      - { id: "08-02", titre: "Routage", sous_rubriques: ["Selon la complexité", "Chaînes de repli"] }
+      - { id: "08-03", titre: "Garde-fous", sous_rubriques: ["Budgets", "Coupure automatique", "Quotas"] }
+      - { id: "08-04", titre: "Mesure", sous_rubriques: ["Coût par tâche", "Latence p50 et p95"] }
+
+  - id: "09"
+    dossier: 09-conception
+    titre: "Concevoir et documenter"
+    projets: [12]
+    rubriques:
+      - { id: "09-01", titre: "Décisions d'architecture", sous_rubriques: ["ADR", "Justifier un compromis"] }
+      - { id: "09-02", titre: "Diagrammes", sous_rubriques: ["Flux de données", "Topologie d'agents"] }
+      - { id: "09-03", titre: "Benchmarks", sous_rubriques: ["Reproductibilité"] }
+      - { id: "09-04", titre: "Publication", sous_rubriques: ["Analyse de son architecture"] }

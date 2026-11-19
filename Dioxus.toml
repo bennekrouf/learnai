@@ -1,0 +1,11 @@
+[application]
+name = "learnai"
+default_platform = "desktop"
+
+[desktop]
+title = "LearnAI"
+
+[bundle]
+identifier = "ch.mayorana.learnai"
+publisher = "Mayorana"
+icon = ["assets/icon.png"]
