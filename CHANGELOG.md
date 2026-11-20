@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- LearnAI speaks English too. Pick Français or English in Settings; until you
+  do, it follows your system's language. Your answers carry over from one
+  language to the other.
+- The whole course is in English: all ten steps, every story, every lesson
+  and all 467 questions, each with its why. The diagrams are labeled in
+  English and the examples use dollars and English names.
+- Switch between FR and EN, and between day and night, from the bar at the
+  top of the window, beside the zoom: no need to open Settings.
+
 ## [0.1.1] - 2026-11-19
 
 ### Added

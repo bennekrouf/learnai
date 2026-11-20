@@ -4,7 +4,7 @@
 use desktop_kit::ui::Theme;
 use dioxus::prelude::*;
 
-use super::{etape, etape_label, rubrique, Sel, Tab, Ui};
+use super::{etape_label, FallbackNote, Sel, Tab, Ui};
 use crate::content::Source;
 use crate::markdown;
 
@@ -12,19 +12,21 @@ use crate::markdown;
 pub fn Lesson(e: usize, r: Option<usize>) -> Element {
     let ui = use_context::<Ui>();
     let theme = use_context::<Theme>();
-    let Some(et) = etape(e) else {
+    let w = ui.words();
+    let Some(et) = ui.etape(e) else {
         return rsx! {};
     };
-    let ru = r.and_then(|r| rubrique(e, r));
+    let ru = r.and_then(|r| ui.rubrique(e, r));
     let light = (theme.light)();
 
-    // Built once per page: the Markdown doesn't change while it is open.
+    // Built once per page: the Markdown doesn't change while it is open (a
+    // change of language opens the page anew, see the workspace's keys).
     let html = use_hook(move || {
         let body = match ru {
             Some(ru) => ru.body.as_str(),
             None => et.chapitre.as_ref().map_or("", |c| c.body.as_str()),
         };
-        markdown::to_html(body)
+        markdown::to_html(body, w.why)
     });
 
     // Once drawn, and again when the theme changes: the diagrams, then the
@@ -57,7 +59,7 @@ pub fn Lesson(e: usize, r: Option<usize>) -> Element {
 
     let (eyebrow, title, lead, sources) = match ru {
         Some(ru) => (
-            format!("{} · {}", etape_label(et), et.titre),
+            format!("{} · {}", etape_label(w, et), et.titre),
             ru.titre.clone(),
             ru.sous_rubriques
                 .iter()
@@ -67,7 +69,7 @@ pub fn Lesson(e: usize, r: Option<usize>) -> Element {
             ru.sources.clone(),
         ),
         None => (
-            etape_label(et),
+            etape_label(w, et),
             et.titre.clone(),
             et.chapitre
                 .as_ref()
@@ -84,6 +86,10 @@ pub fn Lesson(e: usize, r: Option<usize>) -> Element {
         None => Sel::Etape(e),
     };
     let first = et.rubriques.first().map(|x| x.titre.clone());
+    let fallback = match ru {
+        Some(ru) => ru.fallback,
+        None => et.chapitre.as_ref().is_some_and(|c| c.fallback),
+    };
 
     rsx! {
         div { class: "col-head",
@@ -95,7 +101,7 @@ pub fn Lesson(e: usize, r: Option<usize>) -> Element {
                 button {
                     class: "btn btn-small btn-primary",
                     onclick: move |_| ui.go(Tab::Qcm, here),
-                    "Faire le QCM"
+                    {w.take_quiz}
                 }
             }
         }
@@ -103,6 +109,7 @@ pub fn Lesson(e: usize, r: Option<usize>) -> Element {
             article { class: "page lesson",
                 p { class: "eyebrow", "{eyebrow}" }
                 h1 { class: "page-title", "{title}" }
+                FallbackNote { show: fallback }
                 if ru.is_some() {
                     p { class: "lead", "{lead}" }
                 } else {
@@ -120,13 +127,13 @@ pub fn Lesson(e: usize, r: Option<usize>) -> Element {
                             button {
                                 class: "btn btn-primary",
                                 onclick: move |_| ui.go(Tab::Qcm, here),
-                                "Faire le QCM de cette rubrique"
+                                {w.take_rubrique_quiz}
                             }
                             if here.next().is_some() {
                                 button {
                                     class: "btn",
                                     onclick: move |_| ui.go_next(here),
-                                    "Suite \u{2192}"
+                                    {w.next}
                                 }
                             }
                         },
@@ -135,7 +142,7 @@ pub fn Lesson(e: usize, r: Option<usize>) -> Element {
                                 button {
                                     class: "btn btn-primary",
                                     onclick: move |_| ui.go(Tab::Qcm, Sel::Rubrique(e, 0)),
-                                    "Commencer le QCM : {first} \u{2192}"
+                                    {w.start_quiz_of(&first)}
                                 }
                             }
                         },
@@ -148,12 +155,13 @@ pub fn Lesson(e: usize, r: Option<usize>) -> Element {
 
 #[component]
 fn Sources(sources: Vec<Source>) -> Element {
+    let ui = use_context::<Ui>();
     if sources.is_empty() {
         return rsx! {};
     }
     rsx! {
         section { class: "sources",
-            h2 { class: "section-title", "Sources" }
+            h2 { class: "section-title", {ui.words().sources} }
             ul {
                 for s in sources {
                     li { key: "{s.url}",

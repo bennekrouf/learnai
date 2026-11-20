@@ -4,7 +4,7 @@
 
 use dioxus::prelude::*;
 
-use super::{etape, etape_label, rubrique, Sel, Tab, Ui};
+use super::{etape_label, etape_num, FallbackNote, Sel, Tab, Ui};
 use crate::progress::Answer;
 
 const LETTERS: [&str; 4] = ["A", "B", "C", "D"];
@@ -12,7 +12,8 @@ const LETTERS: [&str; 4] = ["A", "B", "C", "D"];
 #[component]
 pub fn Quiz(e: usize, r: usize) -> Element {
     let ui = use_context::<Ui>();
-    let (Some(et), Some(ru)) = (etape(e), rubrique(e, r)) else {
+    let w = ui.words();
+    let (Some(et), Some(ru)) = (ui.etape(e), ui.rubrique(e, r)) else {
         return rsx! {};
     };
     let total = ru.qcm.len();
@@ -28,15 +29,15 @@ pub fn Quiz(e: usize, r: usize) -> Element {
         div { class: "col-head",
             div { class: "col-head-main",
                 div { class: "col-title", "{ru.titre}" }
-                div { class: "col-sub", "{etape_label(et)} · {et.titre}" }
+                div { class: "col-sub", "{etape_label(w, et)} · {et.titre}" }
             }
-            span { class: "score", title: "Bonnes réponses sur les questions répondues",
+            span { class: "score", title: w.score_hint,
                 "{score.correct} / {score.answered}"
             }
             button {
                 class: "btn btn-small",
                 onclick: move |_| ui.go(Tab::Cours, Sel::Rubrique(e, r)),
-                "Cours"
+                {w.tab_lesson}
             }
         }
         div { class: "strip",
@@ -63,7 +64,7 @@ pub fn Quiz(e: usize, r: usize) -> Element {
             }
             button {
                 class: if i >= total { "pip pip-end pip-on" } else { "pip pip-end" },
-                title: "Résultat",
+                title: w.result,
                 onclick: move |_| index.set(total),
                 "\u{2211}"
             }
@@ -85,24 +86,22 @@ pub fn Quiz(e: usize, r: usize) -> Element {
             })
             .collect();
         let next_label = match Sel::Rubrique(e, r).next() {
-            Some(Sel::Etape(n)) => etape(n).map(|x| format!("{} : {}", etape_label(x), x.titre)),
-            Some(Sel::Rubrique(ne, nr)) => {
-                rubrique(ne, nr).map(|x| format!("Rubrique suivante : {}", x.titre))
-            }
+            Some(Sel::Etape(n)) => ui.etape(n).map(|x| w.etape_titled(etape_num(x), &x.titre)),
+            Some(Sel::Rubrique(ne, nr)) => ui.rubrique(ne, nr).map(|x| w.next_rubrique(&x.titre)),
             None => None,
         };
         return rsx! {
             {head}
             div { class: "main-scroll",
                 div { class: "page",
-                    p { class: "eyebrow", "Résultat" }
+                    p { class: "eyebrow", {w.result} }
                     h1 { class: "page-title", "{score.correct} / {total}" }
                     if score.answered < total {
-                        p { class: "lead", "Il reste {total - score.answered} question(s) sans réponse." }
+                        p { class: "lead", {w.left(total - score.answered)} }
                     } else if score.correct == total {
-                        p { class: "lead", "Tout juste. Le cours reste là pour les détails." }
+                        p { class: "lead", {w.all_right} }
                     } else {
-                        p { class: "lead", "Les questions à revoir, avec la partie du cours qui y répond :" }
+                        p { class: "lead", {w.to_review} }
                     }
                     if !missed.is_empty() {
                         div { class: "missed",
@@ -124,15 +123,15 @@ pub fn Quiz(e: usize, r: usize) -> Element {
                                             }
                                             div { class: "missed-answer",
                                                 if a.is_some() {
-                                                    "Bonne réponse : {right}"
+                                                    {w.right_answer(&right)}
                                                 } else {
-                                                    "Pas encore répondu"
+                                                    {w.not_answered}
                                                 }
                                             }
                                             button {
                                                 class: "link",
                                                 onclick: move |_| ui.read_at(e, r, &anchor),
-                                                "Revoir « {sous} » dans le cours \u{2192}"
+                                                {w.review_in_lesson(&sous)}
                                             }
                                         }
                                     }
@@ -151,17 +150,17 @@ pub fn Quiz(e: usize, r: usize) -> Element {
                         button {
                             class: "btn",
                             onclick: move |_| ui.go(Tab::Cours, Sel::Rubrique(e, r)),
-                            "Lire le cours"
+                            {w.read_lesson}
                         }
                         button {
                             class: "btn btn-ghost",
-                            title: "Efface les réponses de cette rubrique",
+                            title: w.restart_hint,
                             onclick: move |_| {
                                 progress.write().reset(ru);
                                 index.set(0);
                                 why.set(false);
                             },
-                            "Recommencer"
+                            {w.restart}
                         }
                     }
                 }
@@ -185,8 +184,9 @@ pub fn Quiz(e: usize, r: usize) -> Element {
         {head}
         div { class: "main-scroll",
             div { class: "page",
+                FallbackNote { show: ru.fallback }
                 div { class: "q-meta",
-                    span { "Question {i + 1} / {total}" }
+                    span { {w.question_of(i + 1, total)} }
                     span { class: "chip", "{sous}" }
                 }
                 h1 { class: "q-text", "{q.question}" }
@@ -221,13 +221,13 @@ pub fn Quiz(e: usize, r: usize) -> Element {
                 }
                 if let Some(a) = answer {
                     div { class: if a.correct { "verdict verdict-good" } else { "verdict verdict-bad" },
-                        if a.correct { "Bonne réponse." } else { "Pas tout à fait." }
+                        if a.correct { {w.right} } else { {w.wrong} }
                     }
                     div { class: "why-box",
                         button {
                             class: if open { "why-btn why-btn-on" } else { "why-btn" },
                             onclick: move |_| why.toggle(),
-                            if open { "Masquer le pourquoi" } else { "Pourquoi ?" }
+                            if open { {w.why_hide} } else { {w.why} }
                         }
                         if open {
                             div { class: "why-text",
@@ -244,16 +244,16 @@ pub fn Quiz(e: usize, r: usize) -> Element {
                                 index.set(i + 1);
                                 why.set(false);
                             },
-                            if last { "Voir le résultat \u{2192}" } else { "Question suivante \u{2192}" }
+                            if last { {w.see_result} } else { {w.next_question} }
                         }
                         button {
                             class: "link",
                             onclick: move |_| ui.read_at(e, r, &anchor),
-                            "Voir « {sous} » dans le cours \u{2192}"
+                            {w.see_in_lesson(&sous)}
                         }
                     }
                 } else {
-                    p { class: "hint", "Choisis une réponse." }
+                    p { class: "hint", {w.pick_one} }
                 }
             }
         }

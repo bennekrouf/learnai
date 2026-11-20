@@ -8,7 +8,8 @@ mod sidebar;
 
 use dioxus::prelude::*;
 
-use crate::content::{course, Etape, Rubrique};
+use crate::content::{course, course_in, Course, Etape, Rubrique};
+use crate::lang::{Lang, Words};
 use crate::progress::Progress;
 
 pub use lesson::Lesson;
@@ -69,17 +70,37 @@ pub struct Ui {
     /// The sous-rubrique the lesson scrolls to once it is drawn.
     pub anchor: Signal<Option<String>>,
     pub progress: Signal<Progress>,
+    pub lang: Signal<Lang>,
 }
 
 impl Ui {
-    pub fn new(progress: Signal<Progress>) -> Self {
+    pub fn new(progress: Signal<Progress>, lang: Signal<Lang>) -> Self {
         let first = first_open(&progress.peek());
         Ui {
             tab: Signal::new(Tab::Qcm),
             sel: Signal::new(first),
             anchor: Signal::new(None),
             progress,
+            lang,
         }
+    }
+
+    /// The course in the language shown. Reading it redraws the caller when
+    /// the language changes.
+    pub fn course(self) -> &'static Course {
+        course_in((self.lang)())
+    }
+
+    pub fn words(self) -> &'static Words {
+        (self.lang)().words()
+    }
+
+    pub fn etape(self, e: usize) -> Option<&'static Etape> {
+        self.course().etapes.get(e)
+    }
+
+    pub fn rubrique(self, e: usize, r: usize) -> Option<&'static Rubrique> {
+        self.etape(e).and_then(|et| et.rubriques.get(r))
     }
 
     pub fn go(mut self, tab: Tab, sel: Sel) {
@@ -128,17 +149,27 @@ fn first_open(progress: &Progress) -> Sel {
     Sel::Etape(0)
 }
 
-pub fn etape(e: usize) -> Option<&'static Etape> {
-    course().etapes.get(e)
+/// The étape's number, from the plan's "03".
+pub fn etape_num(et: &Etape) -> u32 {
+    et.id.parse::<u32>().unwrap_or(0)
 }
 
-pub fn rubrique(e: usize, r: usize) -> Option<&'static Rubrique> {
-    etape(e).and_then(|et| et.rubriques.get(r))
+/// "Étape 3" or "Step 3".
+pub fn etape_label(words: &Words, et: &Etape) -> String {
+    words.etape(etape_num(et))
 }
 
-/// "Étape 3", from the plan's "03".
-pub fn etape_label(et: &Etape) -> String {
-    format!("Étape {}", et.id.parse::<u32>().unwrap_or(0))
+/// Says that what is shown is still in French, when it is.
+#[component]
+pub fn FallbackNote(show: bool) -> Element {
+    let ui = use_context::<Ui>();
+    let text = ui.words().not_translated;
+    if !show || text.is_empty() {
+        return rsx! {};
+    }
+    rsx! {
+        p { class: "fallback-note", "{text}" }
+    }
 }
 
 #[component]
@@ -148,6 +179,8 @@ pub fn Workspace() -> Element {
     let sel = (ui.sel)();
     // The zoom applies to the page only: the sidebar and bars keep their size.
     let zoom = f64::from(ui.progress.read().zoom()) / 100.0;
+    // A lesson builds its page once: a new language opens it anew.
+    let lang = (ui.lang)().code();
 
     // The left panel's width. While the handle is dragged it follows the
     // pointer here only; the file gets the width once, when it is let go.
@@ -178,7 +211,7 @@ pub fn Workspace() -> Element {
             Sidebar {}
             div {
                 class: "resize-handle",
-                title: "Glisser pour élargir ou réduire · double-clic pour revenir à la taille d'origine",
+                title: ui.words().resize_hint,
                 onmousedown: move |e| {
                     e.prevent_default();
                     dragging.set(Some(width));
@@ -192,8 +225,8 @@ pub fn Workspace() -> Element {
                 match (tab, sel) {
                     (Tab::Qcm, Sel::Etape(e)) => rsx! { Overview { key: "o{e}", e } },
                     (Tab::Qcm, Sel::Rubrique(e, r)) => rsx! { Quiz { key: "q{e}-{r}", e, r } },
-                    (Tab::Cours, Sel::Etape(e)) => rsx! { Lesson { key: "l{e}", e, r: None } },
-                    (Tab::Cours, Sel::Rubrique(e, r)) => rsx! { Lesson { key: "l{e}-{r}", e, r: Some(r) } },
+                    (Tab::Cours, Sel::Etape(e)) => rsx! { Lesson { key: "l{e}-{lang}", e, r: None } },
+                    (Tab::Cours, Sel::Rubrique(e, r)) => rsx! { Lesson { key: "l{e}-{r}-{lang}", e, r: Some(r) } },
                 }
             }
         }
