@@ -1,0 +1,104 @@
+titre: "AI Systems Engineering"
+langue: en
+etapes:
+  - id: "00"
+    dossier: 00-fondations
+    titre: "LLM foundations"
+    rubriques:
+      - { id: "00-01", titre: "Tokens and context", sous_rubriques: ["What a token is", "The context window", "Input, output and cost"] }
+      - { id: "00-02", titre: "Generation", sous_rubriques: ["Predicting the next token", "Temperature and top-p", "Determinism", "Structured outputs"] }
+      - { id: "00-03", titre: "Embeddings", sous_rubriques: ["A text becomes a vector", "Cosine similarity", "What an embedding captures, and what it misses"] }
+      - { id: "00-04", titre: "Tool calling", sous_rubriques: ["Describing a tool", "The call, result, answer loop", "What can go wrong"] }
+
+  - id: "01"
+    dossier: 01-contexte
+    titre: "Mastering the context"
+    projets: [1, 7]
+    rubriques:
+      - { id: "01-01", titre: "Token budget", sous_rubriques: ["Splitting the window", "Reserving the output"] }
+      - { id: "01-02", titre: "Assembly by priority", sous_rubriques: ["What to cut first", "Truncation and summary", "Preventing overflow"] }
+      - { id: "01-03", titre: "Three-tier memory", sous_rubriques: ["Working memory", "Episodic memory", "Semantic memory"] }
+      - { id: "01-04", titre: "Memory lifecycle", sous_rubriques: ["Importance score", "TTL and eviction", "Persistence across sessions"] }
+
+  - id: "02"
+    dossier: 02-recherche
+    titre: "Finding the information"
+    projets: [2, 3]
+    rubriques:
+      - { id: "02-01", titre: "Preparing the corpus", sous_rubriques: ["Chunking", "Metadata", "Indexing"] }
+      - { id: "02-02", titre: "Search", sous_rubriques: ["BM25", "Vector search", "Hybrid fusion (RRF)"] }
+      - { id: "02-03", titre: "Reranking", sous_rubriques: ["Bi-encoder and cross-encoder", "Latency versus precision"] }
+      - { id: "02-04", titre: "Measuring search", sous_rubriques: ["recall@k, MRR, nDCG", "Building a test set"] }
+      - { id: "02-05", titre: "GraphRAG", sous_rubriques: ["Entities and relations", "Multi-hop traversal", "Community summaries", "When it isn't worth the cost"] }
+
+  - id: "03"
+    dossier: 03-fiabilite
+    titre: "Stopping RAG from making things up"
+    projets: [4]
+    rubriques:
+      - { id: "03-01", titre: "Improving the question", sous_rubriques: ["Rewriting", "Decomposition", "HyDE"] }
+      - { id: "03-02", titre: "Multi-step search", sous_rubriques: ["Looping", "Knowing when to stop"] }
+      - { id: "03-03", titre: "Grounding", sous_rubriques: ["Citing sources", "Checking support"] }
+      - { id: "03-04", titre: "Abstention", sous_rubriques: ["Confidence thresholds", "Saying “I don't know”"] }
+      - { id: "03-05", titre: "Detecting hallucinations", sous_rubriques: ["Consistency", "Judge"] }
+
+  - id: "04"
+    dossier: 04-outils-mcp
+    titre: "Tools and the MCP protocol"
+    projets: [6]
+    rubriques:
+      - { id: "04-01", titre: "JSON-RPC", sous_rubriques: ["Request and response", "Notification", "Errors"] }
+      - { id: "04-02", titre: "MCP", sous_rubriques: ["Versions: initialize, then stateless", "tools/list and tools/call", "Resources and prompts", "stdio and HTTP"] }
+      - { id: "04-03", titre: "Strict schemas", sous_rubriques: ["JSON Schema", "Validating inputs and outputs"] }
+      - { id: "04-04", titre: "Permissions", sous_rubriques: ["Tool scope", "Sandbox", "Human confirmation"] }
+
+  - id: "05"
+    dossier: 05-agents
+    titre: "Agents that hold up in production"
+    projets: [5, 8]
+    rubriques:
+      - { id: "05-01", titre: "State machine", sous_rubriques: ["States and transitions", "The agent loop"] }
+      - { id: "05-02", titre: "Durability", sous_rubriques: ["Checkpoint", "Resuming after a crash", "Idempotency"] }
+      - { id: "05-03", titre: "Failures", sous_rubriques: ["Timeouts", "Exponential backoff and jitter", "Capping retries"] }
+      - { id: "05-04", titre: "Human in the loop", sous_rubriques: ["Steps to approve", "Approve or reject"] }
+      - { id: "05-05", titre: "Multi-agent", sous_rubriques: ["Topologies", "Supervisor", "Typed state", "Conflicts", "When one agent is enough"] }
+
+  - id: "06"
+    dossier: 06-securite
+    titre: "Agent security"
+    projets: [10]
+    rubriques:
+      - { id: "06-01", titre: "Prompt injection", sous_rubriques: ["Direct", "Indirect", "Data, never instructions"] }
+      - { id: "06-02", titre: "Personal data", sous_rubriques: ["Reversible masking", "What never leaves"] }
+      - { id: "06-03", titre: "Least privilege", sous_rubriques: ["Per agent", "Per tool"] }
+      - { id: "06-04", titre: "Audit log", sous_rubriques: ["What to record", "Making it tamper-proof"] }
+
+  - id: "07"
+    dossier: 07-evaluation
+    titre: "Evaluating"
+    projets: [9]
+    rubriques:
+      - { id: "07-01", titre: "What we evaluate", sous_rubriques: ["The answer", "The trajectory"] }
+      - { id: "07-02", titre: "Reference", sous_rubriques: ["Golden set", "Expected DAG", "Per-step score"] }
+      - { id: "07-03", titre: "LLM as a judge", sous_rubriques: ["Rubric", "Calibration", "Bias"] }
+      - { id: "07-04", titre: "In CI", sous_rubriques: ["Regressions", "Blocking a PR"] }
+
+  - id: "08"
+    dossier: 08-cout
+    titre: "Cost and performance"
+    projets: [11]
+    rubriques:
+      - { id: "08-01", titre: "Caching", sous_rubriques: ["Prompt caching", "Semantic caching and its risks"] }
+      - { id: "08-02", titre: "Routing", sous_rubriques: ["By complexity", "Fallback chains"] }
+      - { id: "08-03", titre: "Guardrails", sous_rubriques: ["Budgets", "Automatic cutoff", "Quotas"] }
+      - { id: "08-04", titre: "Measurement", sous_rubriques: ["Cost per task", "p50 and p95 latency"] }
+
+  - id: "09"
+    dossier: 09-conception
+    titre: "Designing and documenting"
+    projets: [12]
+    rubriques:
+      - { id: "09-01", titre: "Architecture decisions", sous_rubriques: ["ADR", "Justifying a trade-off"] }
+      - { id: "09-02", titre: "Diagrams", sous_rubriques: ["Data flow", "Agent topology"] }
+      - { id: "09-03", titre: "Benchmarks", sous_rubriques: ["Reproducibility"] }
+      - { id: "09-04", titre: "Publishing", sous_rubriques: ["Analyzing your own architecture"] }

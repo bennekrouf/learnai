@@ -7,9 +7,9 @@
 
 use pulldown_cmark::{html, CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
 
-/// The HTML for a lesson.
-pub fn to_html(markdown: &str) -> String {
-    let source = expand_pourquoi(markdown);
+/// The HTML for a lesson; `why` labels the buttons that unfold the reasons.
+pub fn to_html(markdown: &str, why: &str) -> String {
+    let source = expand_pourquoi(markdown, why);
     let options = Options::ENABLE_TABLES | Options::ENABLE_HEADING_ATTRIBUTES;
     let mut in_mermaid = false;
     let mut diagram = String::new();
@@ -43,14 +43,16 @@ pub fn to_html(markdown: &str) -> String {
 
 /// `:::pourquoi` … `:::` to a `<details>` the reader opens with a click. The
 /// blank lines around the inside keep it Markdown.
-fn expand_pourquoi(markdown: &str) -> String {
+fn expand_pourquoi(markdown: &str, why: &str) -> String {
     let mut out = String::with_capacity(markdown.len() + 1024);
     let mut open = false;
     for line in markdown.lines() {
         let trimmed = line.trim();
         if !open && trimmed == ":::pourquoi" {
             open = true;
-            out.push_str("<details class=\"why\"><summary>Pourquoi ?</summary>\n<div class=\"why-text\">\n\n");
+            out.push_str("<details class=\"why\"><summary>");
+            out.push_str(&escape(why));
+            out.push_str("</summary>\n<div class=\"why-text\">\n\n");
         } else if open && trimmed == ":::" {
             open = false;
             out.push_str("\n</div>\n</details>\n");
@@ -77,7 +79,10 @@ mod tests {
 
     #[test]
     fn pourquoi_becomes_a_button() {
-        let html = to_html("Une phrase.\n\n:::pourquoi\nParce que **oui**.\n:::\n");
+        let html = to_html(
+            "Une phrase.\n\n:::pourquoi\nParce que **oui**.\n:::\n",
+            "Pourquoi ?",
+        );
         assert!(html.contains("<details class=\"why\"><summary>Pourquoi ?</summary>"));
         assert!(html.contains("<strong>oui</strong>"));
         assert!(html.contains("</details>"));
@@ -85,7 +90,7 @@ mod tests {
 
     #[test]
     fn headings_keep_their_anchor() {
-        let html = to_html("## La réponse {#reponse}\n");
+        let html = to_html("## La réponse {#reponse}\n", "Pourquoi ?");
         assert!(
             html.contains("<h2 id=\"reponse\">La réponse</h2>"),
             "{html}"
@@ -94,7 +99,10 @@ mod tests {
 
     #[test]
     fn mermaid_becomes_a_diagram() {
-        let html = to_html("```mermaid\nflowchart LR\n  A -->|x| B\n```\n");
+        let html = to_html(
+            "```mermaid\nflowchart LR\n  A -->|x| B\n```\n",
+            "Pourquoi ?",
+        );
         assert!(
             html.contains("<pre class=\"mermaid\">flowchart LR\n  A --&gt;|x| B\n</pre>"),
             "{html}"
@@ -104,13 +112,13 @@ mod tests {
 
     #[test]
     fn tables_render() {
-        let html = to_html("| a | b |\n|---|---|\n| 1 | 2 |\n");
+        let html = to_html("| a | b |\n|---|---|\n| 1 | 2 |\n", "Pourquoi ?");
         assert!(html.contains("<table>"));
     }
 
     #[test]
     fn links_open_outside() {
-        let html = to_html("[x](https://example.org)");
+        let html = to_html("[x](https://example.org)", "Pourquoi ?");
         assert!(html.contains("target=\"_blank\""));
     }
 }

@@ -4,7 +4,6 @@
 use dioxus::prelude::*;
 
 use super::{Sel, Tab, Ui};
-use crate::content::course;
 use crate::progress::Score;
 
 #[component]
@@ -13,7 +12,8 @@ pub fn Sidebar() -> Element {
     let sel = (ui.sel)();
     let tab = (ui.tab)();
     let progress = ui.progress.read();
-    let course = course();
+    let course = ui.course();
+    let w = ui.words();
 
     let scores: Vec<Vec<Score>> = course
         .etapes
@@ -30,10 +30,10 @@ pub fn Sidebar() -> Element {
         aside { class: "sidebar",
             div { class: "sidebar-head",
                 span { class: "sidebar-title", "{course.titre}" }
-                div { class: "meter", title: "{all.answered} questions répondues sur {all.total}",
+                div { class: "meter", title: w.meter(all.answered, all.total),
                     div { class: "meter-fill", style: "width: {pct}%" }
                 }
-                div { class: "sidebar-sub", "{all.answered} / {all.total} questions · {all.correct} justes" }
+                div { class: "sidebar-sub", {w.questions_count(all.answered, all.total, all.correct)} }
             }
             div { class: "sidebar-list",
                 for (e, et) in course.etapes.iter().enumerate() {
@@ -61,7 +61,7 @@ pub fn Sidebar() -> Element {
                                     div { class: "sidebar-label", "{et.titre}" }
                                     div { class: "sidebar-sub", "{accroche}" }
                                 }
-                                span { class: "sidebar-count", title: "Questions répondues", "{s.answered}/{s.total}" }
+                                span { class: "sidebar-count", title: w.sidebar_answered, "{s.answered}/{s.total}" }
                             }
                             if open {
                                 for (r, ru) in et.rubriques.iter().enumerate() {
@@ -89,7 +89,7 @@ pub fn Sidebar() -> Element {
                                                 }
                                                 span {
                                                     class: "sidebar-count",
-                                                    title: if rs.answered > 0 { "Bonnes réponses sur le total" } else { "Questions" },
+                                                    title: if rs.answered > 0 { w.sidebar_score } else { w.sidebar_questions },
                                                     if rs.answered > 0 { "{rs.correct}/{rs.total}" } else { "{rs.total}" }
                                                 }
                                             }
@@ -103,9 +103,9 @@ pub fn Sidebar() -> Element {
             }
             div { class: "sidebar-foot",
                 if tab == Tab::Qcm {
-                    "Le QCM d'abord, le cours ensuite."
+                    {w.sidebar_foot_quiz}
                 } else {
-                    "Chaque « Pourquoi ? » s'ouvre d'un clic."
+                    {w.sidebar_foot_lesson}
                 }
             }
         }

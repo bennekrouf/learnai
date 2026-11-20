@@ -11,6 +11,7 @@
 mod components;
 mod content;
 mod kit;
+mod lang;
 mod markdown;
 mod progress;
 
@@ -19,6 +20,7 @@ use dioxus::desktop::LogicalSize;
 use dioxus::prelude::*;
 
 use components::{Tab, Ui, Workspace};
+use lang::Lang;
 
 const MAIN_CSS: &str = include_str!("../assets/main.css");
 
@@ -96,7 +98,22 @@ fn App() -> Element {
     // The answers live in one signal; the file on disk follows it.
     let progress = use_signal(progress::load);
     use_effect(move || progress::save(&progress.read()));
-    let ui = use_context_provider(|| Ui::new(progress));
+    // The language picked in Settings, or else the system's, which only the
+    // webview knows: it is asked once at start.
+    let mut lang = use_signal(|| progress.peek().lang.unwrap_or_default());
+    use_future(move || async move {
+        if progress.peek().lang.is_some() {
+            return;
+        }
+        let tag = document::eval("return navigator.language || ''")
+            .join::<String>()
+            .await
+            .unwrap_or_default();
+        lang.set(Lang::from_tag(&tag));
+    });
+    let ui = use_context_provider(|| Ui::new(progress, lang));
+    let w = lang().words();
+    let mut chosen = progress;
 
     let theme = use_theme();
     use_context_provider(|| theme);
@@ -105,6 +122,7 @@ fn App() -> Element {
     let mut tab_signal = ui.tab;
     let mut zoom_of = progress;
     let zoom = progress.read().zoom();
+    let light = (theme.light)();
 
     // ⌘+ / ⌘− / ⌘0 (Ctrl on Windows and Linux) zoom the page, as in a
     // browser. The webview reports the keys; the step is taken here.
@@ -133,59 +151,98 @@ fn App() -> Element {
             div { class: "kit-tabs",
                 button {
                     class: if tab == Tab::Qcm { "kit-tab kit-on" } else { "kit-tab" },
-                    title: "Les questions d'abord, chacune avec son pourquoi",
+                    title: w.tab_quiz_hint,
                     onclick: move |_| tab_signal.set(Tab::Qcm),
-                    "QCM"
+                    {w.tab_quiz}
                 }
                 button {
                     class: if tab == Tab::Cours { "kit-tab kit-on" } else { "kit-tab" },
-                    title: "Le cours, phrase courte par phrase courte",
+                    title: w.tab_lesson_hint,
                     onclick: move |_| tab_signal.set(Tab::Cours),
-                    "Cours"
+                    {w.tab_lesson}
                 }
             }
             div { class: "kit-spacer" }
-            div { class: "zoom", title: "Taille du texte et des schémas (⌘+ / ⌘− / ⌘0)",
+            div { class: "zoom", title: w.zoom_hint,
                 button {
                     class: "kit-btn zoom-btn",
-                    aria_label: "Réduire",
+                    aria_label: w.zoom_out,
                     disabled: zoom <= progress::ZOOMS[0],
                     onclick: move |_| zoom_of.write().step_zoom(-1),
                     "\u{2212}"
                 }
                 button {
                     class: "kit-btn zoom-level",
-                    title: "Revenir à 100 %",
+                    title: w.zoom_reset,
                     onclick: move |_| zoom_of.write().step_zoom(0),
                     "{zoom} %"
                 }
                 button {
                     class: "kit-btn zoom-btn",
-                    aria_label: "Agrandir",
+                    aria_label: w.zoom_in,
                     disabled: zoom >= progress::ZOOMS[progress::ZOOMS.len() - 1],
                     onclick: move |_| zoom_of.write().step_zoom(1),
                     "+"
                 }
             }
+            // Always at hand, beside the zoom: the language, and day or night.
+            div { class: "lang-switch", role: "group", title: w.settings_language,
+                for l in Lang::ALL {
+                    button {
+                        key: "{l.code()}",
+                        class: if lang() == l { "kit-btn lang-btn kit-on" } else { "kit-btn lang-btn" },
+                        title: l.name(),
+                        aria_pressed: lang() == l,
+                        onclick: move |_| {
+                            lang.set(l);
+                            chosen.write().lang = Some(l);
+                        },
+                        {l.code().to_uppercase()}
+                    }
+                }
+            }
+            button {
+                class: "kit-btn theme-btn",
+                title: if light { w.theme_dark } else { w.theme_light },
+                aria_label: if light { w.theme_dark } else { w.theme_light },
+                onclick: move |_| theme.toggle(),
+                if light { "\u{263E}" } else { "\u{2600}" }
+            }
         }
         if settings_open() {
             SettingsWindow { theme, on_close: move |_| settings_open.set(false),
+                div { class: "kit-set-row lang-row",
+                    span { class: "kit-set-label", {w.settings_language} }
+                    div { class: "kit-set-seg",
+                        for l in Lang::ALL {
+                            button {
+                                key: "{l.code()}",
+                                class: if lang() == l { "kit-on" } else { "" },
+                                onclick: move |_| {
+                                    lang.set(l);
+                                    chosen.write().lang = Some(l);
+                                },
+                                {l.name()}
+                            }
+                        }
+                    }
+                }
                 div { class: "kit-set-actions",
                     button {
                         class: "kit-set-btn",
-                        title: "Le fichier progress.json : vos réponses",
+                        title: w.settings_progress_hint,
                         onclick: move |_| {
                             let _ = desktop_kit::launch::reveal(&progress::file());
                         },
-                        "Afficher le fichier de progression"
+                        {w.settings_progress}
                     }
                 }
             }
         }
-        if let Some(error) = content::load_error() {
+        if let Some(error) = content::load_error(lang()) {
             div { class: "body",
                 div { class: "page",
-                    h1 { class: "page-title", "Le cours n'a pas pu être lu" }
+                    h1 { class: "page-title", {w.load_failed} }
                     pre { class: "error", "{error}" }
                 }
             }

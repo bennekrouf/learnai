@@ -2,12 +2,13 @@
 
 use dioxus::prelude::*;
 
-use super::{etape, etape_label, Sel, Tab, Ui};
+use super::{etape_label, FallbackNote, Sel, Tab, Ui};
 
 #[component]
 pub fn Overview(e: usize) -> Element {
     let ui = use_context::<Ui>();
-    let Some(et) = etape(e) else {
+    let w = ui.words();
+    let Some(et) = ui.etape(e) else {
         return rsx! {};
     };
     let progress = ui.progress.read();
@@ -16,35 +17,38 @@ pub fn Overview(e: usize) -> Element {
         .as_ref()
         .map(|c| c.accroche.clone())
         .unwrap_or_default();
+    let label = etape_label(w, et);
+    let fallback = et.chapitre.as_ref().is_some_and(|c| c.fallback);
 
     rsx! {
         div { class: "col-head",
             div { class: "col-head-main",
-                div { class: "col-title", "{etape_label(et)} · {et.titre}" }
-                div { class: "col-sub", "Les QCM de l'étape, une rubrique à la fois" }
+                div { class: "col-title", "{label} · {et.titre}" }
+                div { class: "col-sub", {w.overview_sub} }
             }
         }
         div { class: "main-scroll",
             div { class: "page",
-                p { class: "eyebrow", "{etape_label(et)}" }
+                p { class: "eyebrow", "{label}" }
                 h1 { class: "page-title", "{et.titre}" }
+                FallbackNote { show: fallback }
                 blockquote { class: "hook", "{accroche}" }
                 button {
                     class: "btn",
                     onclick: move |_| ui.go(Tab::Cours, Sel::Etape(e)),
-                    "Lire l'anecdote"
+                    {w.read_story}
                 }
-                h2 { class: "section-title", "Rubriques" }
+                h2 { class: "section-title", {w.rubriques} }
                 div { class: "cards",
                     for (r, ru) in et.rubriques.iter().enumerate() {
                         {
                             let s = progress.score(ru);
                             let action = if s.done() {
-                                "Revoir"
+                                w.review
                             } else if s.answered > 0 {
-                                "Continuer"
+                                w.resume
                             } else {
-                                "Commencer"
+                                w.start
                             };
                             let width = s.percent();
                             let subs = ru
@@ -63,9 +67,9 @@ pub fn Overview(e: usize) -> Element {
                                         }
                                         div { class: "card-sub",
                                             if s.answered > 0 {
-                                                "{s.answered} / {s.total} répondues · {s.correct} justes"
+                                                {w.answered_of(s.answered, s.total, s.correct)}
                                             } else {
-                                                "{s.total} questions"
+                                                {w.n_questions(s.total)}
                                             }
                                         }
                                     }
@@ -78,7 +82,7 @@ pub fn Overview(e: usize) -> Element {
                                         button {
                                             class: "btn btn-ghost",
                                             onclick: move |_| ui.go(Tab::Cours, Sel::Rubrique(e, r)),
-                                            "Cours"
+                                            {w.tab_lesson}
                                         }
                                     }
                                 }

@@ -107,6 +107,13 @@ body {
     font-family: var(--mono); font-size: 11.5px; font-variant-numeric: tabular-nums;
 }
 .kit-toolbar .zoom-btn:disabled { opacity: 0.35; cursor: default; }
+/* Language and day/night, kept in view beside the zoom. */
+.lang-switch {
+    display: flex; align-items: center; gap: 2px;
+    margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--border);
+}
+.kit-toolbar .lang-btn { padding: 0 8px; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.5px; }
+.kit-toolbar .theme-btn { width: 30px; padding: 0; margin-left: 4px; font-size: 15px; }
 
 /* ── Sidebar ──────────────────────────────────────────────────────── */
 .sidebar {
@@ -399,3 +406,17 @@ body {
 
 .sources ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
 .sources li { font-size: 13.5px; }
+
+/* A part not translated yet, shown in French. */
+.fallback-note {
+  display: inline-block;
+  margin: 0 0 14px;
+  padding: 4px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--text3);
+  font-size: 12.5px;
+}
+
+/* The language choice sits above the Settings buttons. */
+.lang-row { padding: 4px 0 10px; }

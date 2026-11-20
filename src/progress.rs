@@ -8,6 +8,7 @@ use std::path::PathBuf;
 use serde::{Deserialize, Serialize};
 
 use crate::content::Rubrique;
+use crate::lang::Lang;
 
 const FILE: &str = "progress.json";
 
@@ -29,6 +30,9 @@ pub struct Progress {
     /// The left panel's width in pixels; none is the default.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub sidebar: Option<u32>,
+    /// The language picked in Settings; none follows the system's.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lang: Option<Lang>,
 }
 
 /// The left panel's width: default, and the range a drag stays within.
